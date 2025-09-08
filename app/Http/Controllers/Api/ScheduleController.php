@@ -6,11 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Models\ScheduleBlock;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use OpenApi\Annotations as OA;
 
 class ScheduleController extends Controller
 {
     /**
-     * 일정 블록 목록 조회
+     * @OA\Get(
+     *     path="/api/schedule",
+     *     summary="일정 블록 목록 조회",
+     *     tags={"일정 관리"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="일정 목록 조회 성공",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/ScheduleBlock"))
+     *         )
+     *     )
+     * )
      */
     public function index(Request $request): JsonResponse
     {

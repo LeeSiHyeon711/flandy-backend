@@ -6,11 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use OpenApi\Annotations as OA;
 
 class TaskController extends Controller
 {
     /**
-     * 할 일 목록 조회
+     * @OA\Get(
+     *     path="/api/tasks",
+     *     summary="할 일 목록 조회",
+     *     tags={"할 일 관리"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="할 일 목록 조회 성공",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Task"))
+     *         )
+     *     )
+     * )
      */
     public function index(Request $request): JsonResponse
     {
@@ -25,7 +39,27 @@ class TaskController extends Controller
     }
 
     /**
-     * 할 일 상세 조회
+     * @OA\Get(
+     *     path="/api/tasks/{id}",
+     *     summary="할 일 상세 조회",
+     *     tags={"할 일 관리"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="할 일 ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="할 일 상세 조회 성공",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", ref="#/components/schemas/Task")
+     *         )
+     *     )
+     * )
      */
     public function show(Task $task): JsonResponse
     {
@@ -40,7 +74,31 @@ class TaskController extends Controller
     }
 
     /**
-     * 할 일 생성
+     * @OA\Post(
+     *     path="/api/tasks",
+     *     summary="할 일 생성",
+     *     tags={"할 일 관리"},
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"title"},
+     *             @OA\Property(property="title", type="string", example="기획서 작성"),
+     *             @OA\Property(property="description", type="string", example="Q1 마케팅 기획서 작성"),
+     *             @OA\Property(property="start_time", type="string", format="date-time", example="2025-01-15T09:00:00Z"),
+     *             @OA\Property(property="deadline", type="string", format="date-time", example="2025-01-20T18:00:00Z"),
+     *             @OA\Property(property="labels", type="array", @OA\Items(type="string"), example={"work", "urgent"})
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="할 일 생성 성공",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", ref="#/components/schemas/Task")
+     *         )
+     *     )
+     * )
      */
     public function store(Request $request): JsonResponse
     {

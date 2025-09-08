@@ -11,6 +11,7 @@ use App\Models\ScheduleBlock;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Http;
+use OpenApi\Annotations as OA;
 
 class AiController extends Controller
 {
@@ -22,7 +23,28 @@ class AiController extends Controller
     }
 
     /**
-     * AI 채팅 메시지 전송
+     * @OA\Post(
+     *     path="/api/ai/chat",
+     *     summary="AI 채팅 메시지 전송",
+     *     tags={"AI 연동"},
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"chat_room_id","message"},
+     *             @OA\Property(property="chat_room_id", type="integer", example=1),
+     *             @OA\Property(property="message", type="string", example="오늘 할 일을 추천해줘")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="AI 채팅 성공",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
      */
     public function chat(Request $request): JsonResponse
     {

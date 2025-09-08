@@ -8,11 +8,25 @@ use App\Models\HabitLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
+use OpenApi\Annotations as OA;
 
 class WorkLifeController extends Controller
 {
     /**
-     * 워라벨 점수 목록 조회
+     * @OA\Get(
+     *     path="/api/worklife/scores",
+     *     summary="워라벨 점수 목록 조회",
+     *     tags={"워라벨 관리"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="워라벨 점수 목록 조회 성공",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/BalanceScore"))
+     *         )
+     *     )
+     * )
      */
     public function getBalanceScores(Request $request): JsonResponse
     {

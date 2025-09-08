@@ -9,11 +9,60 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use OpenApi\Annotations as OA;
 
+/**
+ * @OA\Info(
+ *     title="Plandy API",
+ *     version="1.0.0",
+ *     description="Plandy 백엔드 API 명세서"
+ * )
+ * @OA\SecurityScheme(
+ *     securityScheme="sanctum",
+ *     type="apiKey",
+ *     in="header",
+ *     name="Authorization",
+ *     description="Bearer token"
+ * )
+ */
 class AuthController extends Controller
 {
     /**
-     * 사용자 로그인
+     * @OA\Post(
+     *     path="/api/auth/login",
+     *     summary="사용자 로그인",
+     *     tags={"인증"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email","password"},
+     *             @OA\Property(property="email", type="string", format="email", example="kim@plandy.kr"),
+     *             @OA\Property(property="password", type="string", example="password")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="로그인 성공",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="user", ref="#/components/schemas/User"),
+     *                 @OA\Property(property="token", type="string", example="1|abc123..."),
+     *                 @OA\Property(property="token_type", type="string", example="Bearer")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="인증 실패",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The provided credentials are incorrect."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
      */
     public function login(Request $request): JsonResponse
     {
