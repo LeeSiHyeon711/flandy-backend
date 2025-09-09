@@ -66,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // AI 연동 API
     Route::prefix('ai')->group(function () {
         Route::post('/chat', [AiController::class, 'chat']);
+        Route::post('/chat/stream', [AiController::class, 'chatStream']);
         Route::post('/reschedule', [AiController::class, 'reschedule']);
         Route::post('/analyze-worklife', [AiController::class, 'analyzeWorkLifeBalance']);
     });
