@@ -31,6 +31,9 @@ class Task extends Model
 
     protected $fillable = [
         'user_id',
+        'team_id',
+        'sprint_id',
+        'assignee_id',
         'title',
         'description',
         'start_time',
@@ -40,6 +43,7 @@ class Task extends Model
         'status',
         'labels',
         'meta',
+        'story_points',
     ];
 
     protected $casts = [
@@ -64,5 +68,20 @@ class Task extends Model
     public function feedbacks()
     {
         return $this->hasMany(Feedback::class);
+    }
+
+    public function team()
+    {
+        return $this->belongsTo(Team::class);
+    }
+
+    public function sprint()
+    {
+        return $this->belongsTo(Sprint::class);
+    }
+
+    public function assignee()
+    {
+        return $this->belongsTo(User::class, 'assignee_id');
     }
 }

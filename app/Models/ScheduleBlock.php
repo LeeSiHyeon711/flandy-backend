@@ -32,6 +32,8 @@ class ScheduleBlock extends Model
     protected $fillable = [
         'task_id',
         'user_id',
+        'team_id',
+        'sprint_id',
         'starts_at',
         'ends_at',
         'is_locked',

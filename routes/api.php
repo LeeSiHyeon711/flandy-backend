@@ -5,9 +5,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\ScheduleController;
-use App\Http\Controllers\Api\WorkLifeController;
 use App\Http\Controllers\Api\FeedbackController;
 use App\Http\Controllers\Api\AiController;
+use App\Http\Controllers\Api\TeamController;
+use App\Http\Controllers\Api\SprintController;
 
 /*
 |--------------------------------------------------------------------------
@@ -49,17 +50,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{scheduleBlock}', [ScheduleController::class, 'destroy']);
     });
     
-    // 워라벨 관리 API
-    Route::prefix('worklife')->group(function () {
-        Route::get('/scores', [WorkLifeController::class, 'getBalanceScores']);
-        Route::get('/scores/week/{weekStart}', [WorkLifeController::class, 'getBalanceScoreByWeek']);
-        Route::post('/scores', [WorkLifeController::class, 'storeBalanceScore']);
-        Route::post('/scores/calculate', [WorkLifeController::class, 'calculateCurrentWeekScore']);
-        
-        Route::get('/habits', [WorkLifeController::class, 'getHabitLogs']);
-        Route::post('/habits', [WorkLifeController::class, 'storeHabitLog']);
-    });
-    
     // 피드백 관리 API
     Route::apiResource('feedbacks', FeedbackController::class);
     
@@ -68,9 +58,26 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/chat', [AiController::class, 'chat']);
         Route::post('/chat/stream', [AiController::class, 'chatStream']);
         Route::post('/reschedule', [AiController::class, 'reschedule']);
-        Route::post('/analyze-worklife', [AiController::class, 'analyzeWorkLifeBalance']);
+        Route::post('/optimize-schedule', [AiController::class, 'optimizeSchedule']);
     });
-    
+
+    // 팀 관리 API
+    Route::apiResource('teams', TeamController::class);
+    Route::post('teams/join', [TeamController::class, 'join']);
+    Route::post('teams/{team}/leave', [TeamController::class, 'leave']);
+    Route::put('teams/{team}/members/{member}', [TeamController::class, 'updateMemberRole']);
+    Route::delete('teams/{team}/members/{member}', [TeamController::class, 'removeMember']);
+
+    // 스프린트 관리 API
+    Route::get('teams/{team}/sprints', [SprintController::class, 'index']);
+    Route::post('teams/{team}/sprints', [SprintController::class, 'store']);
+    Route::get('sprints/{sprint}', [SprintController::class, 'show']);
+    Route::put('sprints/{sprint}', [SprintController::class, 'update']);
+    Route::delete('sprints/{sprint}', [SprintController::class, 'destroy']);
+    Route::post('sprints/{sprint}/activate', [SprintController::class, 'activate']);
+    Route::post('sprints/{sprint}/complete', [SprintController::class, 'complete']);
+    Route::get('sprints/{sprint}/dashboard', [SprintController::class, 'dashboard']);
+
 });
 
 // AI 서버에서 호출하는 웹훅 엔드포인트들 (인증 없음)
@@ -84,12 +91,6 @@ Route::prefix('webhook')->group(function () {
     Route::post('/ai/schedule-update', function (Request $request) {
         // AI 서버에서 일정 업데이트를 받는 웹훅
         // 실제 구현에서는 일정 변경사항을 처리
-        return response()->json(['success' => true]);
-    });
-    
-    Route::post('/ai/worklife-analysis', function (Request $request) {
-        // AI 서버에서 워라벨 분석 결과를 받는 웹훅
-        // 실제 구현에서는 분석 결과를 저장
         return response()->json(['success' => true]);
     });
 });

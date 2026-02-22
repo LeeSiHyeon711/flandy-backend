@@ -28,8 +28,30 @@ class TaskController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $tasks = Task::where('user_id', $request->user()->id)
-            ->with(['scheduleBlocks', 'feedbacks'])
+        $query = Task::where('user_id', $request->user()->id);
+
+        // 팀 필터
+        if ($request->has('team_id')) {
+            $query = Task::where('team_id', $request->team_id);
+        }
+
+        // 스프린트 필터
+        if ($request->has('sprint_id')) {
+            $query->where('sprint_id', $request->sprint_id);
+        }
+
+        // 담당자 필터
+        if ($request->has('assignee_id')) {
+            $query->where('assignee_id', $request->assignee_id);
+        }
+
+        // 상태 필터
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $tasks = $query->with(['scheduleBlocks', 'feedbacks', 'assignee', 'sprint'])
+            ->orderByDesc('created_at')
             ->get();
 
         return response()->json([
@@ -111,6 +133,10 @@ class TaskController extends Controller
             'on_fail' => 'nullable|string',
             'labels' => 'nullable|array',
             'meta' => 'nullable|array',
+            'team_id' => 'nullable|exists:teams,id',
+            'sprint_id' => 'nullable|exists:sprints,id',
+            'assignee_id' => 'nullable|exists:users,id',
+            'story_points' => 'nullable|integer|min:0',
         ]);
 
         $validated['user_id'] = $request->user()->id;
@@ -140,6 +166,10 @@ class TaskController extends Controller
             'status' => 'sometimes|in:pending,in_progress,completed,cancelled',
             'labels' => 'nullable|array',
             'meta' => 'nullable|array',
+            'team_id' => 'nullable|exists:teams,id',
+            'sprint_id' => 'nullable|exists:sprints,id',
+            'assignee_id' => 'nullable|exists:users,id',
+            'story_points' => 'nullable|integer|min:0',
         ]);
 
         $task->update($validated);

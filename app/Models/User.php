@@ -66,16 +66,6 @@ class User extends Model
         return $this->hasMany(ScheduleBlock::class);
     }
 
-    public function habitLogs()
-    {
-        return $this->hasMany(HabitLog::class);
-    }
-
-    public function balanceScores()
-    {
-        return $this->hasMany(BalanceScore::class);
-    }
-
     public function chatRooms()
     {
         return $this->hasMany(ChatRoom::class);
@@ -84,5 +74,22 @@ class User extends Model
     public function auditLogs()
     {
         return $this->hasMany(AuditLog::class);
+    }
+
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class, 'team_members')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    public function ownedTeams()
+    {
+        return $this->hasMany(Team::class, 'owner_id');
+    }
+
+    public function assignedTasks()
+    {
+        return $this->hasMany(Task::class, 'assignee_id');
     }
 }
