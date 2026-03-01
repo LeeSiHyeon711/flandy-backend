@@ -28,8 +28,16 @@ class ScheduleController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $scheduleBlocks = ScheduleBlock::where('user_id', $request->user()->id)
-            ->with(['task', 'feedbacks'])
+        $query = ScheduleBlock::where('user_id', $request->user()->id);
+
+        if ($request->has('start_date')) {
+            $query->where('starts_at', '>=', $request->start_date);
+        }
+        if ($request->has('end_date')) {
+            $query->where('starts_at', '<=', $request->end_date . ' 23:59:59');
+        }
+
+        $scheduleBlocks = $query->with(['task', 'feedbacks'])
             ->orderBy('starts_at')
             ->get();
 
@@ -62,6 +70,7 @@ class ScheduleController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
+            'title' => 'nullable|string|max:255',
             'task_id' => 'nullable|exists:tasks,id',
             'starts_at' => 'required|date',
             'ends_at' => 'required|date|after:starts_at',
@@ -73,6 +82,7 @@ class ScheduleController extends Controller
         $validated['user_id'] = $request->user()->id;
 
         $scheduleBlock = ScheduleBlock::create($validated);
+        $scheduleBlock->load('task');
 
         return response()->json([
             'success' => true,
@@ -88,6 +98,8 @@ class ScheduleController extends Controller
         $this->authorize('update', $scheduleBlock);
 
         $validated = $request->validate([
+            'title' => 'sometimes|nullable|string|max:255',
+            'task_id' => 'sometimes|nullable|exists:tasks,id',
             'starts_at' => 'sometimes|date',
             'ends_at' => 'sometimes|date|after:starts_at',
             'is_locked' => 'boolean',

@@ -30,6 +30,7 @@ class ScheduleBlock extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'title',
         'task_id',
         'user_id',
         'team_id',

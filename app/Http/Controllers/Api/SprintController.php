@@ -146,9 +146,9 @@ class SprintController extends Controller
             return [
                 'user_id' => $assigneeId,
                 'name' => $assignee ? $assignee->name : '미지정',
-                'total' => $memberTasks->count(),
-                'completed' => $memberTasks->where('status', 'completed')->count(),
-                'points' => $memberTasks->sum('story_points') ?: 0,
+                'task_count' => $memberTasks->count(),
+                'completed_count' => $memberTasks->where('status', 'completed')->count(),
+                'story_points' => $memberTasks->sum('story_points') ?: 0,
             ];
         })->values();
 
@@ -170,15 +170,15 @@ class SprintController extends Controller
 
                 $burndown[] = [
                     'date' => $dateStr,
-                    'remaining' => $totalPoints - $completedByDate,
-                    'ideal' => max(0, $totalPoints - ($totalPoints * (array_search($dateStr, array_column($burndown, 'date')) + 1) / max(count(iterator_to_array($period)), 1))),
+                    'remaining' => (int) ($totalPoints - $completedByDate),
+                    'ideal' => 0,
                 ];
             }
 
-            // ideal line 재계산
+            // ideal line 재계산 (int로 반환)
             $days = count($burndown);
             foreach ($burndown as $i => &$point) {
-                $point['ideal'] = round($totalPoints * (1 - ($i + 1) / $days), 1);
+                $point['ideal'] = (int) round($totalPoints * (1 - ($i + 1) / $days));
             }
         }
 
@@ -188,7 +188,7 @@ class SprintController extends Controller
                 'sprint' => $sprint,
                 'total_points' => $totalPoints,
                 'completed_points' => $completedPoints,
-                'progress' => $totalPoints > 0 ? round($completedPoints / $totalPoints * 100, 1) : 0,
+                'progress' => $totalPoints > 0 ? round($completedPoints / $totalPoints, 4) : 0.0,
                 'total_tasks' => $totalTasks,
                 'status_counts' => $statusCounts,
                 'member_workload' => $memberWorkload,

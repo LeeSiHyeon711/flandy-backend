@@ -32,7 +32,7 @@ class TaskController extends Controller
 
         // 팀 필터
         if ($request->has('team_id')) {
-            $query = Task::where('team_id', $request->team_id);
+            $query->where('team_id', $request->team_id);
         }
 
         // 스프린트 필터

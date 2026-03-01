@@ -10,13 +10,49 @@ use Illuminate\Http\JsonResponse;
 
 class TeamController extends Controller
 {
+    /**
+     * 팀 데이터를 Flutter가 기대하는 형태로 변환
+     */
+    private function formatTeam(Team $team, int $userId): array
+    {
+        $data = $team->toArray();
+
+        // my_role 결정: 팀 소유자이면 'owner', 아니면 멤버 역할
+        if ($team->owner_id === $userId) {
+            $data['my_role'] = 'owner';
+        } elseif (isset($data['pivot']['role'])) {
+            $data['my_role'] = $data['pivot']['role'];
+        } else {
+            $member = $team->members->firstWhere('user_id', $userId);
+            $data['my_role'] = $member?->role;
+        }
+        unset($data['pivot']);
+
+        // members를 플랫 구조로 변환: {id, name, email, role}
+        if (isset($data['members'])) {
+            $data['members'] = collect($data['members'])->map(function ($m) {
+                return [
+                    'id' => $m['user']['id'] ?? $m['user_id'],
+                    'name' => $m['user']['name'] ?? 'Unknown',
+                    'email' => $m['user']['email'] ?? null,
+                    'role' => $m['role'],
+                ];
+            })->values()->toArray();
+        }
+
+        return $data;
+    }
+
     public function index(Request $request): JsonResponse
     {
+        $userId = $request->user()->id;
         $teams = $request->user()->teams()->with(['owner', 'members.user'])->get();
+
+        $formatted = $teams->map(fn(Team $team) => $this->formatTeam($team, $userId));
 
         return response()->json([
             'success' => true,
-            'data' => $teams
+            'data' => $formatted
         ]);
     }
 
@@ -41,7 +77,7 @@ class TeamController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $team
+            'data' => $this->formatTeam($team, $request->user()->id)
         ], 201);
     }
 
@@ -53,7 +89,7 @@ class TeamController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $team
+            'data' => $this->formatTeam($team, request()->user()->id)
         ]);
     }
 
@@ -118,7 +154,7 @@ class TeamController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $team,
+            'data' => $this->formatTeam($team, $request->user()->id),
             'message' => '팀에 참여했습니다.'
         ]);
     }

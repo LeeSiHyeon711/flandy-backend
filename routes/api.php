@@ -61,10 +61,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/optimize-schedule', [AiController::class, 'optimizeSchedule']);
     });
 
-    // 팀 관리 API
-    Route::apiResource('teams', TeamController::class);
+    // 팀 관리 API (구체적인 라우트를 apiResource보다 먼저 등록)
     Route::post('teams/join', [TeamController::class, 'join']);
     Route::post('teams/{team}/leave', [TeamController::class, 'leave']);
+    Route::apiResource('teams', TeamController::class);
     Route::put('teams/{team}/members/{member}', [TeamController::class, 'updateMemberRole']);
     Route::delete('teams/{team}/members/{member}', [TeamController::class, 'removeMember']);
 

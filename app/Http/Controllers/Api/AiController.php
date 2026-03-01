@@ -90,7 +90,7 @@ class AiController extends Controller
 
         try {
             // AI 서버로 스트림 요청 전송
-            $response = Http::timeout(30)->withOptions([
+            $response = Http::timeout(120)->withOptions([
                 'stream' => true,
                 'headers' => [
                     'Accept' => 'text/event-stream',
@@ -107,6 +107,14 @@ class AiController extends Controller
 
             if ($response->successful()) {
                 return response()->stream(function () use ($response, $chatRoom, $userMessage, $sessionId, $request) {
+                    // 출력 버퍼링 완전 비활성화 (SSE 즉시 전달)
+                    @ini_set('zlib.output_compression', 'Off');
+                    @ini_set('output_buffering', 'Off');
+                    @ini_set('implicit_flush', 1);
+                    while (ob_get_level()) {
+                        ob_end_flush();
+                    }
+
                     $fullResponse = '';
                     $metadata = null;
                     $toolInvocations = [];
@@ -114,16 +122,13 @@ class AiController extends Controller
 
                     $body = $response->getBody();
                     while (!$body->eof()) {
-                        $chunk = $body->read(8192);
+                        $chunk = $body->read(1024);
                         if ($chunk === '') {
                             break;
                         }
 
                         // 프론트엔드로 즉시 전달
                         echo $chunk;
-                        if (ob_get_level()) {
-                            ob_flush();
-                        }
                         flush();
 
                         // 버퍼에 누적하여 완전한 SSE 이벤트 단위로 파싱
@@ -552,7 +557,7 @@ class AiController extends Controller
             $schedulesForAi = $scheduleBlocks->map(function ($block) {
                 return [
                     'schedule_id' => $block->id,
-                    'task_title' => $block->task ? $block->task->title : '(제목 없음)',
+                    'task_title' => $block->title ?: ($block->task ? $block->task->title : '(제목 없음)'),
                     'starts_at' => $block->starts_at->toIso8601String(),
                     'ends_at' => $block->ends_at->toIso8601String(),
                     'is_locked' => (bool) $block->is_locked,
